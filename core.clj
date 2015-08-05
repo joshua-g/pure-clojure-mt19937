@@ -50,13 +50,12 @@
   "Takes a Mersenne and a number n, and returns a 2-tuple of
   a vector of the next n integer values, and the resulting Mersenne"
   [n mersenne-obj]
-  (->>
-   [[] (.state mersenne-obj)]
-   (iterate (fn [[vs state]]
-              (let [[new-v new-state] (m-next state)]
-                [(conj vs new-v) new-state])))
-   (#(nth % n))
-   wrap-value-state-tuple))
+  (->> [[] (.state mersenne-obj)]
+       (iterate (fn [[vs state]]
+                  (let [[new-v new-state] (m-next state)]
+                    [(conj vs new-v) new-state])))
+       (#(nth % n))
+       wrap-value-state-tuple))
 
 (defn- wrap-value-state-tuple [[v state]]
   [v (->Mersenne state)])
