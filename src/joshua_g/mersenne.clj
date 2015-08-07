@@ -2,26 +2,23 @@
       :author "Joshua Greenberg"}
   joshua-g.mersenne)
 
-;; user> (take 10
-;;             (map (partial bit-and 0xFF)
-;;                  (mersenne 1)))
-;; (37 235 140 72 255 137 203 133 79 192)
-
-;; user> (next-values 5 (mersenne 1))
-;; [[1791095845 4282876139 3093770124 4005303368 491263] #<... Mersenne@102b7529>]
-
+;; private declarations
 (declare make-seq)
-(declare m-next)
 (declare wrap-value-state-tuple)
+(declare m-next)
+
 
 (deftype Mersenne [state]
   clojure.lang.Seqable
   (seq [this] (make-seq state))
   Object
-  (equals [this other] (= state (.state other))))
+  (equals [this other]
+    (and (instance? Mersenne other)
+         (let [o ^Mersenne other]
+           (= state (.state o))))))
 
 (defn mersenne
-  "Create a Mersenne, which is an (immutable) Seqable that 
+  "Create a Mersenne, which is an (immutable) Seqable that
   encapsulates the PRNG state, based on the supplied integer seed"
   [seed]
   {:pre [(integer? seed)]}
@@ -40,17 +37,16 @@
 (defn next-value
   "Takes a Mersenne and returns a 2-tuple of the next integer
   value and the resulting Mersenne"
-  [mersenne-obj]
-  (-> mersenne-obj
-      .state
+  [^Mersenne m]
+  (-> (.state m)
       m-next
       wrap-value-state-tuple))
 
 (defn next-values
   "Takes a Mersenne and a number n, and returns a 2-tuple of
   a vector of the next n integer values, and the resulting Mersenne"
-  [n mersenne-obj]
-  (->> [[] (.state mersenne-obj)]
+  [n ^Mersenne m]
+  (->> [[] (.state m)]
        (iterate (fn [[vs state]]
                   (let [[new-v new-state] (m-next state)]
                     [(conj vs new-v) new-state])))
